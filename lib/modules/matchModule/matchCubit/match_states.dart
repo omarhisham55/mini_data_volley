@@ -14,8 +14,13 @@ class LoadingUpdateMatchState extends MatchStates {}
 
 class SuccessUpdateMatchState extends MatchStates {
   final MatchModel matchModel;
+  final bool fromEdit;
 
-  SuccessUpdateMatchState(this.matchModel);
+  SuccessUpdateMatchState(this.matchModel, this.fromEdit);
 }
 
 class ErrorUpdateMatchState extends MatchStates {}
+
+class SuccessDeleteMatchState extends MatchStates {}
+
+class ErrorDeleteMatchState extends MatchStates {}

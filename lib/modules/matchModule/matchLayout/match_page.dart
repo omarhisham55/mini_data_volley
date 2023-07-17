@@ -18,23 +18,22 @@ class MatchPage extends StatelessWidget {
     return BlocConsumer<MatchManager, MatchStates>(
       listener: (context, state) {
         if (state is SuccessUpdateMatchState) {
-          navigateTo(context, ScorePage(matchModel: state.matchModel));
+          if(state.fromEdit){
+            navigateTo(
+                    context,
+                    MatchPage(
+                      homeTeam: state.matchModel.homeTeam,
+                      awayTeam: state.matchModel.awayTeam,
+                    ),
+                  );
+          }else{
+            navigateTo(context, ScorePage(matchModel: state.matchModel));
+
+          }
         }
       },
       builder: (context, state) {
         MatchManager manager = MatchManager.get(context);
-        List<String> totalScore = List.generate(
-            5,
-            (index) =>
-                '${manager.finalScore1[index].text}:${manager.finalScore2[index].text}');
-        List<List<String>> homePositionText = List.generate(
-            manager.homePosition.length,
-            (index) => List.generate(manager.homePosition[index].length,
-                (index2) => manager.homePosition[index][index2].text));
-        List<List<String>> awayPositionText = List.generate(
-            manager.homePosition.length,
-            (index) => List.generate(manager.awayPosition[index].length,
-                (index2) => manager.awayPosition[index][index2].text));
         return PageView.builder(
           controller: manager.pageController,
           itemBuilder: (context, index) => ConditionalBuilder(
@@ -158,9 +157,9 @@ class MatchPage extends StatelessWidget {
                                   MatchManager.get(context)
                                       .awayWins
                                       .toString());
-                              debugPrint(totalScore.toString());
-                              debugPrint(homePositionText.toString());
-                              debugPrint(awayPositionText.toString());
+                              debugPrint(manager.totalScore.toString());
+                              debugPrint(manager.homePositionText.toString());
+                              debugPrint(manager.awayPositionText.toString());
                               bool isFriendly = false;
                               MatchWidgets.friendlyDialog(
                                 context: context,
@@ -173,10 +172,10 @@ class MatchPage extends StatelessWidget {
                                     awayTeam: awayTeam,
                                     homeSetter: homeSetter,
                                     awaySetter: awaySetter,
-                                    homePositions: homePositionText,
-                                    awayPositions: awayPositionText,
+                                    homePositions: manager.homePositionText,
+                                    awayPositions: manager.awayPositionText,
                                     isFriendly: isFriendly,
-                                    score: totalScore,
+                                    score: manager.totalScore,
                                     numberScore:
                                         '${MatchManager.get(context).homeWins} - ${MatchManager.get(context).awayWins}',
                                   );
@@ -190,10 +189,10 @@ class MatchPage extends StatelessWidget {
                                     awayTeam: awayTeam,
                                     homeSetter: homeSetter,
                                     awaySetter: awaySetter,
-                                    homePositions: homePositionText,
-                                    awayPositions: awayPositionText,
+                                    homePositions: manager.homePositionText,
+                                    awayPositions: manager.awayPositionText,
                                     isFriendly: isFriendly,
-                                    score: totalScore,
+                                    score: manager.totalScore,
                                     numberScore:
                                         '${MatchManager.get(context).homeWins} - ${MatchManager.get(context).awayWins}',
                                   );

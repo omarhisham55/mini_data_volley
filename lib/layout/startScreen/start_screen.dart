@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mini_data_volley/modules/Scores/scoreLayout/total_teams.dart';
 import '../../modules/Scores/scoreLayout/total_matches.dart';
 import '../../shared/constants.dart';
 import '../layoutCubit/layout_cubit.dart';
@@ -16,6 +17,19 @@ class StartScreen extends StatelessWidget {
         listener: (context, state) {},
         builder: (context, state) {
           return Scaffold(
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0.0,
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    navigateTo(context, AllTeams());
+                  },
+                  icon: const Icon(Icons.people),
+                  tooltip: 'Teams',
+                ),
+              ],
+            ),
             body: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(

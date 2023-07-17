@@ -9,6 +9,8 @@ class ScoreManager extends Cubit<ScoreStates> {
 
   static ScoreManager get(context) => BlocProvider.of(context);
 
+  GlobalKey<ScaffoldState> totalTeamsKey = GlobalKey<ScaffoldState>();
+
   List<MatchModel>? matches15;
   List<MatchModel>? matches17;
   List<MatchModel>? matches19;
@@ -74,7 +76,6 @@ class ScoreManager extends Cubit<ScoreStates> {
     (isClicked[page][index])
         ? isClicked[page][index] = false
         : isClicked[page][index] = true;
-    print(isClicked[page][index]);
     emit(OpenMatchDetailsState());
   }
 }

@@ -76,7 +76,11 @@ class StartMatch extends StatelessWidget {
                             text: 'Create new team',
                             onPressed: () {
                               LayoutWidgets.openBottomSheet(
-                                  context, manager, state);
+                                context: context,
+                                key: manager.scaffoldKey,
+                                manager: manager,
+                                state: state,
+                              );
                             },
                           ),
                         ],

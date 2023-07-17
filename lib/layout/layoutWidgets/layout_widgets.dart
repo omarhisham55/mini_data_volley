@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:mini_data_volley/models/teams_model.dart';
+import 'package:mini_data_volley/modules/Scores/scoreCubit/score_cubit.dart';
 import '../../shared/constants.dart';
 import '../layoutCubit/layout_cubit.dart';
 import '../layoutCubit/layout_states.dart';
@@ -50,7 +52,7 @@ class LayoutWidgets {
 
   static String level = '15';
 
-  static Widget scaffoldBottomSheet({
+  static Widget scaffoldCreateTeamBottomSheet({
     required BuildContext context,
     required String text,
     required TextEditingController controller,
@@ -58,58 +60,106 @@ class LayoutWidgets {
   }) =>
       Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                SizedBox(
-                  width: width(context, .85),
-                  child: TextFormField(
-                    controller: controller,
-                    decoration: InputDecoration(
-                      labelText: text,
-                      contentPadding: const EdgeInsets.only(left: 15.0),
+        child: Form(
+          key: LayoutManager.get(context).createTeamKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  SizedBox(
+                    width: width(context, .85),
+                    child: TextFormField(
+                      controller: controller,
+                      decoration: InputDecoration(
+                        labelText: text,
+                        contentPadding: const EdgeInsets.only(left: 15.0),
+                      ),
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'No Team Name';
+                        }
+                        return null;
+                      },
+                      onFieldSubmitted: (value) {
+                        if (LayoutManager.get(context)
+                            .createTeamKey
+                            .currentState!
+                            .validate()) {
+                          LayoutManager.get(context)
+                              .createTeam(level: level, context: context);
+                        }
+                      },
                     ),
                   ),
-                ),
-                colorButtonPalette(context),
-              ],
-            ),
-            dropDownMenu(
-              context: context,
-              labelText: 'Level',
-              onChanged: (value) {
-                level = value!;
-              },
-              items: ['15', '17', '19', 'First'],
-            ),
-            bigButton(
-              context: context,
-              text: 'save',
-              onPressed: () {
-                LayoutManager.get(context)
-                    .createTeam(level: level, context: context);
-              },
-            ),
-          ],
+                  colorButtonPalette(context),
+                ],
+              ),
+              dropDownMenu(
+                context: context,
+                labelText: 'Level',
+                onChanged: (value) {
+                  level = value!;
+                },
+                items: ['15', '17', '19', 'First'],
+              ),
+              bigButton(
+                context: context,
+                text: 'save',
+                onPressed: () {
+                  if (LayoutManager.get(context)
+                      .createTeamKey
+                      .currentState!
+                      .validate()) {
+                    LayoutManager.get(context)
+                        .createTeam(level: level, context: context);
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       );
 
-  static void openBottomSheet(context, manager, state) {
+  static void openBottomSheet({
+    required BuildContext context,
+    required GlobalKey<ScaffoldState> key,
+    required manager,
+    required state,
+    bool? create,
+    TeamModel? teamModel,
+  }) {
     if (manager.isBottomSheetOpened) {
       Navigator.pop(context);
       manager.isBottomSheetOpened = false;
     } else {
       manager.isBottomSheetOpened = true;
-      manager.scaffoldKey.currentState!
+      key.currentState!
           .showBottomSheet((context) {
-            return LayoutWidgets.scaffoldBottomSheet(
-              context: context,
-              text: 'Team Name',
-              controller: manager.newTeam,
-              state: state,
-            );
+            return create ?? true
+                ? LayoutWidgets.scaffoldCreateTeamBottomSheet(
+                    context: context,
+                    text: 'Team Name',
+                    controller: manager.newTeam,
+                    state: state,
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      bigButton(
+                        context: context,
+                        text: 'Edit',
+                        onPressed: () {},
+                      ),
+                      bigButton(
+                          context: context,
+                          text: 'Delete',
+                          onPressed: () {
+                            manager.deleteTeam(teamModel!.id, teamModel.level);
+                          },
+                          color: Colors.red),
+                    ],
+                  );
           })
           .closed
           .then((value) {

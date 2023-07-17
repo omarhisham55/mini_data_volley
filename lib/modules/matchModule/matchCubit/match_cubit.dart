@@ -25,6 +25,18 @@ class MatchManager extends Cubit<MatchStates> {
   List<List<TextEditingController>> awayPosition = List.generate(
       5, (index) => List.generate(6, (index) => TextEditingController()));
 
+  late List<List<String>> homePositionText = List.generate(
+      homePosition.length,
+      (index) => List.generate(homePosition[index].length,
+          (index2) => homePosition[index][index2].text));
+  late List<List<String>> awayPositionText = List.generate(
+      homePosition.length,
+      (index) => List.generate(awayPosition[index].length,
+          (index2) => awayPosition[index][index2].text));
+
+  late List<String> totalScore = List.generate(
+      5, (index) => '${finalScore1[index].text}:${finalScore2[index].text}');
+
   List<TextEditingController> finalScore1 =
       List.generate(5, (index) => TextEditingController());
   List<TextEditingController> finalScore2 =
@@ -47,9 +59,18 @@ class MatchManager extends Cubit<MatchStates> {
     emit(LoadingStartMatchState());
     matchModel = MatchModel(
       level: level,
+      homeTeam: homeTeam,
+      awayTeam: awayTeam,
       homeTeamName: homeTeam.name,
       awayTeamName: awayTeam.name,
       dateTime: dateTime,
+      score: [],
+      awayPositions: {},
+      homePositions: {},
+      awaySetter: [],
+      homeSetter: [],
+      isFriendly: false,
+      numberScore: '',
     );
     await FirebaseFirestore.instance
         .collection('matches')
@@ -71,20 +92,26 @@ class MatchManager extends Cubit<MatchStates> {
     required BuildContext context,
     required String level,
     required String numberScore,
-    required List<String> homeSetter,
-    required List<String> awaySetter,
+    required List<dynamic> homeSetter,
+    required List<dynamic> awaySetter,
     required TeamModel homeTeam,
     required TeamModel awayTeam,
-    required List<List<String>> homePositions,
-    required List<List<String>> awayPositions,
-    required List<String> score,
+    required List<List<dynamic>> homePositions,
+    required List<List<dynamic>> awayPositions,
+    required List<dynamic> score,
+    String? date,
     bool? isFriendly = false,
+    bool? fromEdit = false,
+    bool? fileExist = false,
+    bool? videoExist = false,
   }) async {
     matchModel = MatchModel(
       level: level,
+      homeTeam: homeTeam,
+      awayTeam: awayTeam,
       homeTeamName: homeTeam.name,
       awayTeamName: awayTeam.name,
-      dateTime: matchModel!.dateTime,
+      dateTime: date ?? matchModel!.dateTime,
       isFriendly: isFriendly,
       numberScore: numberScore,
       homeSetter: homeSetter,
@@ -104,6 +131,8 @@ class MatchManager extends Cubit<MatchStates> {
         'set5': awayPositions[4],
       },
       score: score,
+      fileExist: false,
+      videoExist: false,
     );
     emit(LoadingUpdateMatchState());
     await FirebaseFirestore.instance
@@ -114,10 +143,25 @@ class MatchManager extends Cubit<MatchStates> {
         .update(matchModel!.toMap())
         .then((value) {
       ScoreManager.get(context).getAllMatches();
-      emit(SuccessUpdateMatchState(matchModel!));
+      emit(SuccessUpdateMatchState(matchModel!, fromEdit ?? false));
     }).catchError((e) {
       debugPrint(e.toString());
       emit(ErrorUpdateMatchState());
+    });
+  }
+
+  void deleteMatch(BuildContext context, String level, String id) async {
+    await FirebaseFirestore.instance
+        .collection('matches')
+        .doc(level)
+        .collection('matches/')
+        .doc(id)
+        .delete()
+        .then((value) {
+          ScoreManager.get(context).getAllMatches();
+      emit(SuccessDeleteMatchState());
+    }).catchError((e) {
+      emit(ErrorDeleteMatchState());
     });
   }
 }

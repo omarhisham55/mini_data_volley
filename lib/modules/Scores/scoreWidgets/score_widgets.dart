@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mini_data_volley/layout/layoutCubit/layout_cubit.dart';
+import 'package:mini_data_volley/layout/layoutCubit/layout_states.dart';
+import 'package:mini_data_volley/layout/layoutWidgets/layout_widgets.dart';
+import 'package:mini_data_volley/modules/matchModule/matchCubit/match_cubit.dart';
 import '../../../models/match_model.dart';
+import '../../../models/teams_model.dart';
 import '../../../shared/constants.dart';
 import '../scoreCubit/score_cubit.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
@@ -24,6 +29,7 @@ class ScoreWidgets {
           ],
         ),
       );
+
   static Widget teamPosition(
       {required BuildContext context,
       required String teamName,
@@ -86,42 +92,36 @@ class ScoreWidgets {
   static Widget buildViewMatchItem({
     required int page,
     required List<String> matchTitles,
-    required List<MatchModel>? matchModels,
+    required List<MatchModel> matchModels,
   }) {
     return ConditionalBuilder(
-      condition: matchModels != null,
-      builder: (context) {
-        return ConditionalBuilder(
-          condition: matchModels!.isNotEmpty,
-          builder: (context) => SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              children: [
-                ExpansionPanelList(
-                  animationDuration: const Duration(milliseconds: 300),
-                  children: List.generate(
-                    matchModels.length,
-                    (index) => expandedRowItem(
-                      context: context,
-                      page: page,
-                      index: index,
-                      matchTitle: matchTitles[index],
-                      matchModel: matchModels[index],
-                    ),
-                  ),
+      condition: matchModels.isNotEmpty,
+      builder: (context) => SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            ExpansionPanelList(
+              animationDuration: const Duration(milliseconds: 300),
+              children: List.generate(
+                matchModels.length,
+                (index) => expandedRowItem(
+                  context: context,
+                  page: page,
+                  index: index,
+                  matchTitle: matchTitles[index],
+                  matchModel: matchModels[index],
                 ),
-              ],
+              ),
             ),
-          ),
-          fallback: (context) => const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Center(child: Text('No Matches')),
-            ],
-          ),
-        );
-      },
-      fallback: (context) => fallBackIndicator(),
+          ],
+        ),
+      ),
+      fallback: (context) => const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(child: Text('No Matches')),
+        ],
+      ),
     );
   }
 
@@ -182,16 +182,17 @@ class ScoreWidgets {
             ],
           ),
           const SizedBox(height: 10.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Text(matchModel.score![0] ?? ''),
-              Text(matchModel.score![1] ?? ''),
-              Text(matchModel.score![2] ?? ''),
-              Text(matchModel.score![3] ?? ''),
-              Text(matchModel.score![4] ?? ''),
-            ],
-          ),
+          if (matchModel.score!.isNotEmpty)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text(matchModel.score![0].toString()),
+                Text(matchModel.score![1].toString()),
+                Text(matchModel.score![2].toString()),
+                Text(matchModel.score![3].toString()),
+                Text(matchModel.score![4].toString()),
+              ],
+            ),
           const SizedBox(height: 30.0),
           Text(
             matchModel.homeTeamName,
@@ -220,6 +221,101 @@ class ScoreWidgets {
             separatorBuilder: (context, index) => const SizedBox(height: 15.0),
             itemCount: matchModel.homePositions!.length,
           ),
+          const SizedBox(height: 30.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              smallButton(
+                text: 'Edit',
+                onPressed: () {
+                  MatchManager.get(context).updateMatch(
+                    context: context,
+                    level: matchModel.level,
+                    date: matchModel.dateTime,
+                    numberScore: matchModel.numberScore!,
+                    homeSetter: matchModel.homeSetter!,
+                    awaySetter: matchModel.awaySetter!,
+                    homeTeam: matchModel.homeTeam,
+                    awayTeam: matchModel.awayTeam,
+                    homePositions: MatchManager.get(context).homePositionText,
+                    awayPositions: MatchManager.get(context).awayPositionText,
+                    score: matchModel.score!,
+                  );
+                },
+              ),
+              const SizedBox(height: 10.0),
+              smallButton(
+                color: Colors.red,
+                text: 'Delete',
+                onPressed: () {
+                  MatchManager.get(context).deleteMatch(
+                      context,
+                      matchModel.level,
+                      '${matchModel.homeTeamName} Vs ${matchModel.awayTeamName}');
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget buildViewTeamItem({
+    required int page,
+    required List<TeamModel> teamModels,
+  }) {
+    return ConditionalBuilder(
+      condition: teamModels.isNotEmpty,
+      builder: (context) => SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              shrinkWrap: true,
+              itemBuilder: (context, index) => InkWell(
+                onTap: () {
+                  if (LayoutManager.get(context).isBottomSheetOpened) {
+                    Navigator.pop(context);
+                  }
+                },
+                onLongPress: () {
+                  LayoutWidgets.openBottomSheet(
+                      context: context,
+                      key: ScoreManager.get(context).totalTeamsKey,
+                      manager: LayoutManager.get(context),
+                      state: LayoutStates,
+                      create: false,
+                      teamModel: teamModels[index]);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CircleAvatar(),
+                      Text(teamModels[index].name),
+                      Container(
+                        width: 20,
+                        height: 20,
+                        color: Color(int.parse(
+                            teamModels[index].color,
+                            radix: 16)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              itemCount: teamModels.length,
+            ),
+          ],
+        ),
+      ),
+      fallback: (context) => const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(child: Text('No Teams')),
         ],
       ),
     );

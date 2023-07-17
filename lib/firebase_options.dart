@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBuetonOEEHgep6q8PIORaj_1cZzIDdm9Y',
-    appId: '1:273311948382:android:394ba43dcf5508fc579ecf',
+    appId: '1:273311948382:android:a2610bff654c9d6c579ecf',
     messagingSenderId: '273311948382',
     projectId: 'positiontaker-a126d',
     storageBucket: 'positiontaker-a126d.appspot.com',
@@ -59,11 +59,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDwFoTZhAH6RfOsywHrrYXb-JrU4Zm9vk0',
-    appId: '1:273311948382:ios:7d9b09cb539faacb579ecf',
+    appId: '1:273311948382:ios:6e9edd127a37e21f579ecf',
     messagingSenderId: '273311948382',
     projectId: 'positiontaker-a126d',
     storageBucket: 'positiontaker-a126d.appspot.com',
-    iosClientId: '273311948382-7hoc014917cn9b10vfmspj6sq3spmnio.apps.googleusercontent.com',
-    iosBundleId: 'com.example.matchPositionTaker',
+    iosClientId: '273311948382-btp5i0vtnjncnkdq3elaj4d0t620nr8k.apps.googleusercontent.com',
+    iosBundleId: 'com.example.miniDataVolley',
   );
 }

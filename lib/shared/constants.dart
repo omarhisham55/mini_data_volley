@@ -18,18 +18,26 @@ Widget bigButton({
   required BuildContext context,
   required String text,
   required Function() onPressed,
+  Color? color,
 }) =>
     Padding(
       padding: const EdgeInsets.all(10.0),
       child: MaterialButton(
-          color: Colors.blue,
+          color: color ?? Colors.blue,
           minWidth: width(context, 1),
           onPressed: onPressed,
           child: Text(text.toUpperCase())),
     );
 
-Widget smallButton({required String text, required Function() onPressed}) =>
+Widget smallButton({
+  required String text,
+  required Function() onPressed,
+  Color? color,
+}) =>
     ElevatedButton(
+      style: ButtonStyle(
+          backgroundColor:
+              MaterialStateColor.resolveWith((states) => color ?? Colors.blue)),
       onPressed: onPressed,
       child: Text(text),
     );

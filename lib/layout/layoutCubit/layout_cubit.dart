@@ -14,6 +14,7 @@ class LayoutManager extends Cubit<LayoutStates> {
   static LayoutManager get(context) => BlocProvider.of(context);
 
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  GlobalKey<FormState> createTeamKey = GlobalKey<FormState>();
   TextEditingController newTeam = TextEditingController();
   bool isBottomSheetOpened = false;
   Color color = Colors.red;
@@ -42,11 +43,14 @@ class LayoutManager extends Cubit<LayoutStates> {
     TeamModel model = TeamModel(
       id: id,
       level: level,
-      color: color.toString(),
+      color: color.value.toRadixString(16),
       name: newTeam.text,
       image: image.toString(),
     );
-    if (allTeams.any((element) => element.name == newTeam.text)) {
+    if (allTeams.any((element) {
+      if (element.level == model.level) return element.name == model.name;
+      return false;
+    })) {
       volleyToast(message: 'Team already exists', state: ToastStates.warning);
       emit(ErrorCreateTeamState());
     } else {
@@ -67,56 +71,56 @@ class LayoutManager extends Cubit<LayoutStates> {
     }
   }
 
+  void deleteTeam(String id, String level) async {
+    await FirebaseFirestore.instance
+        .collection('teams')
+        .doc(level)
+        .collection('teams/')
+        .doc(id)
+        .delete()
+        .then((value) {
+      emit(SuccessDeleteTeamState());
+      getAllTeams();
+    }).catchError((e) {
+      debugPrint(e.toString());
+      emit(ErrorDeleteTeamState());
+    });
+  }
+
   List<TeamModel> allTeams = [];
-  List<TeamModel> teams15 = [];
-  List<TeamModel> teams17 = [];
-  List<TeamModel> teams19 = [];
+  List<TeamModel>? teams15;
+  List<TeamModel>? teams17;
+  List<TeamModel>? teams19;
+  List<TeamModel>? teamsFirst;
 
   void getAllTeams() async {
     allTeams = [];
     teams15 = [];
     teams17 = [];
     teams19 = [];
+    teamsFirst = [];
     emit(LoadingGetAllTeamsTeamState());
+    getSingleLevel('15', teams15!);
+    getSingleLevel('17', teams17!);
+    getSingleLevel('19', teams19!);
+    getSingleLevel('First', teamsFirst!);
+  }
+
+  void getSingleLevel(String level, List<TeamModel> teams) async {
     await FirebaseFirestore.instance
         .collection('teams')
-        .doc('15')
+        .doc(level)
         .collection('teams/')
         .get()
-        .then((value15) async {
-      for (var element15 in value15.docs) {
-        teams15.add(TeamModel.fromJSON(element15.data()));
+        .then((value) {
+      for (var element in value.docs) {
+        teams.add(TeamModel.fromJSON(element.data()));
       }
-      await FirebaseFirestore.instance
-          .collection('teams')
-          .doc('17')
-          .collection('teams/')
-          .get()
-          .then((value17) async {
-        for (var element17 in value17.docs) {
-          teams17.add(TeamModel.fromJSON(element17.data()));
-        }
-        await FirebaseFirestore.instance
-            .collection('teams')
-            .doc('19')
-            .collection('teams/')
-            .get()
-            .then((value19) {
-          for (var element19 in value19.docs) {
-            teams19.add(TeamModel.fromJSON(element19.data()));
-          }
-          allTeams = teams15 + teams17 + teams19;
-          emit(SuccessGetAllTeamsTeamState());
-        }).catchError((e) {
-          debugPrint('from 19 $e');
-          emit(ErrorGetAllTeamsTeamState());
-        });
-      }).catchError((e) {
-        debugPrint('from 17 $e');
-        emit(ErrorGetAllTeamsTeamState());
-      });
+      print(teams);
+      allTeams.addAll(teams);
+      emit(SuccessGetAllTeamsTeamState());
     }).catchError((e) {
-      debugPrint('from 15 $e');
+      debugPrint(e.toString());
       emit(ErrorGetAllTeamsTeamState());
     });
   }

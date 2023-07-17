@@ -41,15 +41,23 @@ class MyApp extends StatelessWidget {
                 listener: (context, state) {
               if (state is SuccessCreateTeamState) {
                 volleyToast(
-                    message: 'Team created',
-                    state: ToastStates.success);
+                  message: 'Team created',
+                  state: ToastStates.success,
+                );
               }
             }),
             BlocListener<MatchManager, MatchStates>(listener: (context, state) {
               if (state is SuccessStartMatchState) {
                 volleyToast(
-                    message: 'Match started',
-                    state: ToastStates.success);
+                  message: 'Match started',
+                  state: ToastStates.success,
+                );
+              }
+              if (state is SuccessDeleteMatchState) {
+                volleyToast(
+                  message: 'Match deleted',
+                  state: ToastStates.success,
+                );
               }
             }),
             BlocListener<ScoreManager, ScoreStates>(
